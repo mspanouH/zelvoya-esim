@@ -100,6 +100,7 @@ model Order {
 
   // Guest checkout is allowed, so email is always present and userId optional.
   email         String
+  customerName  String?
   userId        String?
   user          User?       @relation(fields: [userId], references: [id])
 
