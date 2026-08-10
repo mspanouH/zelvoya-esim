@@ -16,7 +16,7 @@ const initialState = { errors: {}, values: {} };
   * Note there are no card fields anywhere. This is a mock payment flow; card
   * details are never collected, displayed or stored.
  */
-export default function CheckoutForm() {
+export default function CheckoutForm({  defaultEmail = '', defaultName = '' }) {
   const [state, formAction, isPending] = useActionState(
     createOrderAction,
     initialState
@@ -34,7 +34,7 @@ export default function CheckoutForm() {
           type="text"
           required
           autoComplete="name"
-          defaultValue={state.values?.customerName || ''}
+          defaultValue={state.values?.customerName ?? defaultName}
           aria-invalid={Boolean(state.errors?.name)}
           aria-describedby={state.errors?.name ? 'name-error' : undefined}
           className={`mt-2 w-full rounded-xl border px-4 py-3 text-[15px] focus:outline-none ${
@@ -62,7 +62,7 @@ export default function CheckoutForm() {
           autoComplete="email"
           aria-invalid={Boolean(state.errors?.email)}
           aria-describedby={state.errors?.email ? 'email-error email-help' : 'email-help'}
-          defaultValue={state.values?.email || ''} 
+          defaultValue={state.values?.email ?? defaultEmail}
           className={`mt-2 w-full rounded-xl border px-4 py-3 text-[15px] focus:outline-none ${
             state.errors?.email
               ? 'border-[var(--z-error)]'

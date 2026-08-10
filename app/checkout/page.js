@@ -3,11 +3,13 @@ import CheckoutForm from '@/components/CheckoutForm';
 import { readCart } from '@/lib/cart';
 import { getPlanBySlug } from '@/lib/providers/esim-provider';
 import { formatPrice } from '@/lib/format';
+import { getSessionUser } from '@/lib/auth';
 
 export const metadata = { title: 'Checkout — Zelvoya' };
 
 export default async function CheckoutPage() {
   const slugs = await readCart();
+  const user = await getSessionUser();
 
   const lines = [];
   for (const slug of slugs) {
@@ -45,7 +47,7 @@ export default async function CheckoutPage() {
             Your details
           </h2>
           <div className="mt-6">
-            <CheckoutForm />
+            <CheckoutForm defaultEmail={user?.email} defaultName={user?.name}/>
           </div>
         </section>
 

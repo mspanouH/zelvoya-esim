@@ -14,7 +14,7 @@ const LINKS = [
   { href: '/contact', label: 'Support' },
 ];
 
-export default function Navbar({cartCount = 0}) {
+export default function Navbar({cartCount = 0,  user = null }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -45,9 +45,15 @@ export default function Navbar({cartCount = 0}) {
         </ul>
 
         <div className="hidden items-center gap-3 md:flex">
+        {user ? (
           <Link href="/account" className="btn btn-secondary px-5 py-2.5">
+            {user.name?.split(' ')[0] || 'Account'}
+          </Link>
+        ) : (
+          <Link href="/login" className="btn btn-secondary px-5 py-2.5">
             Sign in
           </Link>
+        )}
           <Link
           href="/cart"
           className="btn btn-primary px-5 py-2.5"

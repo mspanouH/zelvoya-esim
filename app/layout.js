@@ -3,6 +3,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import './globals.css';
 import { readCart } from '@/lib/cart';
+import { getSessionUser } from '@/lib/auth';
+
 
 /**
  * next/font downloads these at build time and self-hosts them, so there is no
@@ -37,7 +39,10 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-  const cartCount = (await readCart()).length;
+  const [cartCount, user] = await Promise.all([
+    readCart().then((cart) => cart.length),
+    getSessionUser(),
+  ]);
   return (
     <html lang="en">
       <body
@@ -53,7 +58,7 @@ export default async function RootLayout({ children }) {
           Demonstration site. Zelvoya is a fictional company — no payments are
           processed and no eSIMs are issued.
         </p>
-        <Navbar cartCount={cartCount} />
+        <Navbar cartCount={cartCount} user={user}  />
         <main id="main">{children}</main>
         <Footer />
       </body>
