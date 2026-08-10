@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice } from "../lib/catalog.js";
+import { formatPrice } from "../lib/format.js";
 
 export default function PlanCard({ plan }) {
   return (

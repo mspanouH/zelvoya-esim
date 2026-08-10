@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import DestinationBrowser from '@/components/DestinationBrowser';
 import Faq from '@/components/Faq';
-import { getPlans, formatPrice } from '@/lib/catalog';
+import { getPlans } from '@/lib/providers/esim-provider.js';
+import { formatPrice } from '@/lib/format.js';
 
 const STEPS = [
   {
@@ -45,8 +46,8 @@ const BENEFITS = [
   },
 ];
 
-export default function HomePage() {
-  const plans = getPlans();
+export default  async function HomePage() {
+  const plans = await getPlans();
   const boardPlans = plans.slice(0, 3);
 
   return (
