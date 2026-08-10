@@ -49,6 +49,10 @@ export default async function RootLayout({ children }) {
         >
           Skip to content
         </a>
+        <p className="bg-[var(--z-ink)] px-4 py-2 text-center text-xs text-white">
+          Demonstration site. Zelvoya is a fictional company — no payments are
+          processed and no eSIMs are issued.
+        </p>
         <Navbar cartCount={cartCount} />
         <main id="main">{children}</main>
         <Footer />
