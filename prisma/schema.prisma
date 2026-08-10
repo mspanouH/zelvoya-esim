@@ -1,0 +1,210 @@
+// Zelvoya database schema
+// Postgres (Neon) + Prisma 6
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")           // pooled — used by the app at runtime
+  directUrl = env("DATABASE_URL_UNPOOLED")  // direct — used by migrations only
+}
+
+// ---------------------------------------------------------------------------
+// Lifecycle states
+//
+// Every state an order, payment or eSIM can be in is named here. Nothing is
+// implied by a boolean or a null: if an order is in trouble, the status column
+// says exactly how.
+// ---------------------------------------------------------------------------
+
+enum OrderStatus {
+  CREATED           // cart converted to an order, nothing charged yet
+  PENDING_PAYMENT   // customer sent to the payment page
+  PAID              // payment confirmed by server-side callback
+  PROVISIONING      // asking the eSIM provider to issue the eSIM
+  FULFILLED         // eSIM issued and visible to the customer
+  PAYMENT_DECLINED  // provider refused the payment
+  PAYMENT_TIMEOUT   // no callback arrived in time
+  FULFILMENT_FAILED // paid, but the eSIM provider failed — recoverable
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  DECLINED
+  TIMED_OUT
+}
+
+enum EsimStatus {
+  ISSUED
+  ACTIVATED
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  orders       Order[]
+  createdAt    DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Catalogue
+//
+// Mirrors the six plans previously held in lib/catalog.js. Seeded by
+// prisma/seed.js and served through the mock eSIM provider.
+// ---------------------------------------------------------------------------
+
+model Plan {
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  destination  String
+  countryCode  String
+  region       String
+  dataGb       Int
+  validityDays Int
+  network      String
+  priceCents   Int
+  currency     String      @default("EUR")
+  available    Boolean     @default(true)
+  popular      Boolean     @default(false)
+  tagline      String
+  image        String
+  imageAlt     String
+  orderItems   OrderItem[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------------
+
+model Order {
+  id            String      @id @default(cuid())
+  reference     String      @unique // human-facing, e.g. ZV-8F3K2A
+  status        OrderStatus @default(CREATED)
+
+  // Guest checkout is allowed, so email is always present and userId optional.
+  email         String
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+
+  totalCents    Int
+  currency      String      @default("EUR")
+
+  // Human-readable explanation when status is a failure state.
+  failureReason String?
+
+  items         OrderItem[]
+  payments      Payment[]
+  esims         Esim[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status])
+  @@index([email])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  planId  String
+  plan    Plan   @relation(fields: [planId], references: [id])
+
+  // Snapshot of the plan at the moment of ordering. If the price or allowance
+  // changes tomorrow, this order still shows what was actually bought.
+  destination    String
+  dataGb         Int
+  validityDays   Int
+  unitPriceCents Int
+
+  esim Esim?
+
+  @@index([orderId])
+}
+
+// ---------------------------------------------------------------------------
+// Payments
+// ---------------------------------------------------------------------------
+
+model Payment {
+  id          String        @id @default(cuid())
+  orderId     String
+  order       Order         @relation(fields: [orderId], references: [id])
+  provider    String        @default("mock")
+  status      PaymentStatus @default(PENDING)
+  amountCents Int
+  currency    String        @default("EUR")
+
+  // Which test path the customer picked on the mock payment page.
+  scenario    String?
+
+  events      PaymentEvent[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([orderId])
+}
+
+/// Every callback the payment service delivers is recorded here before it is
+/// acted on.
+///
+/// eventId carries a unique constraint. If the same callback arrives twice, the
+/// second insert is rejected by Postgres itself — not by an application check
+/// that two simultaneous requests could slip past. That constraint is what
+/// makes payment handling idempotent.
+model PaymentEvent {
+  id         String   @id @default(cuid())
+  eventId    String   @unique
+  paymentId  String
+  payment    Payment  @relation(fields: [paymentId], references: [id])
+  type       String // payment.succeeded | payment.declined | payment.timeout
+  payload    Json
+  receivedAt DateTime @default(now())
+
+  @@index([paymentId])
+}
+
+// ---------------------------------------------------------------------------
+// Delivery
+// ---------------------------------------------------------------------------
+
+/// One eSIM per order line.
+///
+/// orderItemId is unique, so a line can never be fulfilled twice. A retry after
+/// a provider failure finds the existing row and completes the same order
+/// rather than issuing a second eSIM.
+model Esim {
+  id          String    @id @default(cuid())
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id])
+  orderItemId String    @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+
+  iccid          String     @unique
+  activationCode String
+  smdpAddress    String
+  qrData         String
+  status         EsimStatus @default(ISSUED)
+  providerRef    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
