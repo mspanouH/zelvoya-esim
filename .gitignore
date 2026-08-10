@@ -42,3 +42,5 @@ next-env.d.ts
 
 # Keep the template, ignore real env files
 !.env.example
+.vercel
+.env*
