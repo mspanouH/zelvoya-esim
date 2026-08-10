@@ -1,26 +1,158 @@
+/* ---------------------------------------------------------------------------
+   Tailwind v4 entry point.
+
+   This one line registers the cascade layers: theme, base, components,
+   utilities. Custom CSS written OUTSIDE a layer beats everything inside one,
+   so our own rules go into @layer base / @layer components. That way a Tailwind
+   utility at the call site can still override them.
+
+   Custom properties are just stored values, so the design tokens remail at the top level.
+--------------------------------------------------------------------------- */
 @import "tailwindcss";
 
+/* --- Brand tokens -------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --z-ink: #14161a;        /* headlines, body text */
+  --z-ink-soft: #55595f;   /* secondary text */
+  --z-paper: #ffffff;      /* default page background */
+  --z-mist: #f2f1ec;       /* alternating section background */
+  --z-line: #e3e1da;       /* hairline borders */
+  --z-pine: #16413a;       /* primary buttons, dark sections */
+  --z-pine-deep: #0e2a2c;  /* deepest surface */
+  --z-signal: #e0a526;     /* accent — used sparingly */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* --- Base ---------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    font-family: var(--font-body), system-ui, sans-serif;
+    background-color: var(--z-paper);
+    color: var(--z-ink);
+  }
+
+  /* Visible keyboard focus everywhere, without hurting mouse users. */
+  :focus-visible {
+    outline: 2px solid var(--z-signal);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* --- Components ---------------------------------------------------------- */
+@layer components {
+  /* Type roles ------------------------------------------------------------ */
+
+  /* Editorial serif — headlines only. */
+  .type-display {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+
+  /* Monospace — technical data: country codes, allowances, ICCIDs later. */
+  .type-mono {
+    font-family: var(--font-mono), ui-monospace, monospace;
+  }
+
+  /* Small uppercase label that sits above section headings. */
+  .eyebrow {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--z-ink-soft);
+  }
+
+  /* Buttons ---------------------------------------------------------------
+     These set colour and motion only. Size and padding stay as Tailwind
+     classes at the call site.
+  ----------------------------------------------------------------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1;
+    transition: background-color 0.18s ease, color 0.18s ease,
+      border-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    background-color: var(--z-pine);
+    color: #ffffff;
+    border: 1px solid var(--z-pine);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--z-pine-deep);
+  }
+
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--z-ink);
+    border: 1px solid var(--z-line);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--z-ink);
+  }
+
+  /* On dark backgrounds (hero). */
+  .btn-invert {
+    background-color: #ffffff;
+    color: var(--z-ink);
+    border: 1px solid #ffffff;
+  }
+
+  .btn-invert:hover {
+    background-color: var(--z-signal);
+    border-color: var(--z-signal);
+  }
+
+  .btn-outline-invert {
+    background-color: transparent;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+  }
+
+  .btn-outline-invert:hover {
+    border-color: #ffffff;
+  }
+
+  /* FAQ disclosure -------------------------------------------------------- */
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .faq-item[open] .faq-icon {
+    transform: rotate(45deg);
+  }
 }
