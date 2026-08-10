@@ -2,6 +2,7 @@ import { Inter, Newsreader, IBM_Plex_Mono } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import './globals.css';
+import { readCart } from '@/lib/cart';
 
 /**
  * next/font downloads these at build time and self-hosts them, so there is no
@@ -35,7 +36,8 @@ export const metadata = {
     'Instant travel eSIMs for over 190 destinations. Buy in minutes, scan a QR code, and land connected. No physical SIM, no roaming bills.',
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const cartCount = (await readCart()).length;
   return (
     <html lang="en">
       <body
@@ -47,7 +49,7 @@ export default function RootLayout({ children }) {
         >
           Skip to content
         </a>
-        <Navbar />
+        <Navbar cartCount={cartCount} />
         <main id="main">{children}</main>
         <Footer />
       </body>

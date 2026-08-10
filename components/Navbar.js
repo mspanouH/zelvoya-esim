@@ -14,7 +14,7 @@ const LINKS = [
   { href: '/contact', label: 'Support' },
 ];
 
-export default function Navbar() {
+export default function Navbar({cartCount = 0}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -48,8 +48,17 @@ export default function Navbar() {
           <Link href="/account" className="btn btn-secondary px-5 py-2.5">
             Sign in
           </Link>
-          <Link href="/cart" className="btn btn-primary px-5 py-2.5">
-            Cart
+          <Link
+          href="/cart"
+          className="btn btn-primary px-5 py-2.5"
+          aria-label={`Cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
+          >
+          Cart
+          {cartCount > 0 && (
+            <span className="type-mono ml-1 rounded-full bg-white/20 px-2 py-0.5 text-xs">
+              {cartCount}
+            </span>
+          )}
           </Link>
         </div>
 
