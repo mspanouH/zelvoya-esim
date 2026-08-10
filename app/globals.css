@@ -20,6 +20,7 @@
   --z-pine: #16413a;       /* primary buttons, dark sections */
   --z-pine-deep: #0e2a2c;  /* deepest surface */
   --z-signal: #e0a526;     /* accent — used sparingly */
+  --z-error: #9a2c1e;      /* error */
 }
 
 /* --- Base ---------------------------------------------------------------- */
