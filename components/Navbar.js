@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import AnchorLink from '@/components/AnchorLink';
 import UserMenu from '@/components/UserMenu';
 import { logoutAction } from '@/lib/actions/auth';
 
@@ -36,12 +37,12 @@ export default function Navbar({cartCount = 0,  user = null }) {
         <ul className="hidden items-center gap-8 md:flex">
           {LINKS.map((link) => (
             <li key={link.href}>
-              <Link
+              <AnchorLink
                 href={link.href}
                 className="text-sm text-[var(--z-ink-soft)] transition-colors hover:text-[var(--z-ink)]"
               >
                 {link.label}
-              </Link>
+              </AnchorLink>
             </li>
           ))}
         </ul>
@@ -88,13 +89,13 @@ export default function Navbar({cartCount = 0,  user = null }) {
           <ul className="mx-auto max-w-6xl px-5 py-3 sm:px-8">
             {LINKS.map((link) => (
               <li key={link.href}>
-                <Link
+                <AnchorLink
                   href={link.href}
                   onClick={() => setOpen(false)}
                   className="block border-b border-[var(--z-line)] py-3.5 text-[15px]"
                 >
                   {link.label}
-                </Link>
+                </AnchorLink>
               </li>
             ))}
           </ul>

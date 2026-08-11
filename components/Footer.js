@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import AnchorLink from '@/components/AnchorLink';
 
 const COLUMNS = [
   {
@@ -52,12 +52,12 @@ export default function Footer() {
               <ul className="mt-4 space-y-2.5">
                 {column.links.map((link) => (
                   <li key={link.href}>
-                    <Link
+                    <AnchorLink
                       href={link.href}
                       className="text-sm text-[var(--z-ink-soft)] transition-colors hover:text-[var(--z-ink)]"
                     >
                       {link.label}
-                    </Link>
+                    </AnchorLink>
                   </li>
                 ))}
               </ul>
