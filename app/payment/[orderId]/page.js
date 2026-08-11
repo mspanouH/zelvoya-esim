@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import PaymentScenarioForm from '@/components/PaymentScenarioForm';
 import { getOrderById } from '@/lib/order-service';
 import { formatPrice } from '@/lib/format';
+import { canAccessOrder, getSessionUser, signOrderAccess } from '@/lib/auth';
 
 export const metadata = { title: 'Payment — Zelvoya' };
 
@@ -10,14 +11,15 @@ export const metadata = { title: 'Payment — Zelvoya' };
 // already moved on, so we send the customer to their receipt instead.
 const PAYABLE = ['CREATED', 'PENDING_PAYMENT', 'PAYMENT_DECLINED', 'PAYMENT_TIMEOUT'];
 
-export default async function PaymentPage({ params }) {
+export default async function PaymentPage({ params, searchParams }) {
   const { orderId } = await params;
-  const order = await getOrderById(orderId);
+  const { t } = await searchParams;
+  const [order, user] = await Promise.all([getOrderById(orderId), getSessionUser()]);
 
-  if (!order) notFound();
+  if (!order || !canAccessOrder(order, user, t)) notFound();
 
   if (!PAYABLE.includes(order.status)) {
-    redirect(`/order/${order.id}`);
+    redirect(`/order/${order.id}?t=${signOrderAccess(order.id)}`);
   }
 
   const lastFailure =

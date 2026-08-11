@@ -4,6 +4,7 @@ import StatusBadge from '@/components/StatusBadge';
 import EsimCard from '@/components/EsimCard';
 import { getOrderById } from '@/lib/order-service';
 import { formatPrice } from '@/lib/format';
+import { canAccessOrder, getSessionUser, signOrderAccess } from '@/lib/auth';
 
 export const metadata = { title: 'Your order — Zelvoya' };
 
@@ -51,11 +52,14 @@ const MESSAGES = {
 
 const RETRY_PAYMENT = ['CREATED', 'PENDING_PAYMENT', 'PAYMENT_DECLINED', 'PAYMENT_TIMEOUT'];
 
-export default async function OrderPage({ params }) {
+export default async function OrderPage({ params, searchParams }) {
   const { orderId } = await params;
-  const order = await getOrderById(orderId);
+  const { t } = await searchParams;
+  const [order, user] = await Promise.all([getOrderById(orderId), getSessionUser()]);
 
-  if (!order) notFound();
+  // notFound(), not a 403: someone without a claim to this order has no
+  // business learning that it exists, same reasoning as the admin layout.
+  if (!order || !canAccessOrder(order, user, t)) notFound();
 
   const message = MESSAGES[order.status] || MESSAGES.PENDING_PAYMENT;
   const esimByItemId = new Map(order.esims.map((esim) => [esim.orderItemId, esim]));
@@ -78,7 +82,7 @@ export default async function OrderPage({ params }) {
 
       {RETRY_PAYMENT.includes(order.status) && (
         <Link
-          href={`/payment/${order.id}`}
+          href={`/payment/${order.id}?t=${signOrderAccess(order.id)}`}
           className="btn btn-primary mt-7 px-7 py-4"
         >
           {order.status === 'CREATED' ? 'Complete payment' : 'Try payment again'}
