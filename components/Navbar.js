@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import UserMenu from '@/components/UserMenu';
+import { logoutAction } from '@/lib/actions/auth';
 
 /**
  * Client component because the mobile menu holds open/closed state.
@@ -46,9 +48,7 @@ export default function Navbar({cartCount = 0,  user = null }) {
 
         <div className="hidden items-center gap-3 md:flex">
         {user ? (
-          <Link href="/account" className="btn btn-secondary px-5 py-2.5">
-            {user.name?.split(' ')[0] || 'Account'}
-          </Link>
+          <UserMenu user={user} />
         ) : (
           <Link href="/login" className="btn btn-secondary px-5 py-2.5">
             Sign in
@@ -100,11 +100,11 @@ export default function Navbar({cartCount = 0,  user = null }) {
           </ul>
           <div className="mx-auto flex max-w-6xl gap-3 px-5 pb-5 sm:px-8">
             <Link
-              href="/account"
+              href={user ? '/account' : '/login'}
               onClick={() => setOpen(false)}
               className="btn btn-secondary flex-1 px-5 py-3"
             >
-              Sign in
+              {user ? user.name?.split(' ')[0] || 'Account' : 'Sign in'}
             </Link>
             <Link
               href="/cart"
@@ -114,6 +114,27 @@ export default function Navbar({cartCount = 0,  user = null }) {
               Cart
             </Link>
           </div>
+          {user && (
+            <div className="mx-auto max-w-6xl px-5 pb-5 sm:px-8">
+              {user.role === 'ADMIN' && (
+                <Link
+                  href="/admin/orders"
+                  onClick={() => setOpen(false)}
+                  className="block border-b border-[var(--z-line)] py-3.5 text-[15px]"
+                >
+                  Admin
+                </Link>
+              )}
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className="block w-full py-3.5 text-left text-[15px]"
+                >
+                  Sign out
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       )}
     </header>
